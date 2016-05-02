@@ -9,38 +9,24 @@ var config = require('config');
 var log = require('libs/log')(module);
 
 var app = express();
+
+app.engine('ejs',require('ejs-locals'));
 app.set('port',config.get('port'));
+app.set('views', __dirname + '/templates');
+app.set('view engine', 'ejs');
+app.set('view options', {layout: '/layout/page.ejs'});
+app.use(express.favicon());
+app.use(express.logger('dev'));
+app.use(express.bodyParser());
+app.use(express.cookieParser('your secret here'));
+// app.use(express.session());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
 
-http.createServer(app).listen(app.get('port'), function(){
-  log.info('Express server listening on port ' + config.get('port'));
-});
+app.get('/', function (req, res, next){
+  res.render('index', {
 
-app.use(function (req, res, next) {
-  if(req.url == '/'){
-    res.end('Hello');
-  } else {
-    next();
-  }
-});
-
-app.use(function (req, res, next) {
-  if(req.url == '/test'){
-    res.end('Test');
-  } else {
-    next();
-  }
-});
-
-app.use(function (req, res, next) {
-  if(req.url == '/forbidden'){
-    next(new Error("wops, denied"));
-  } else {
-    next();
-  }
-});
-
-app.use(function (req, res) {
-  res.send(404,'Page Not Found Sorry');
+  });
 });
 
 app.use(function (err, req, res, next) {
@@ -58,7 +44,7 @@ app.use(function (err, req, res, next) {
 //
 // // all environments
 // app.set('port', process.env.PORT || 3000);
-// app.set('views', __dirname + '/views');
+// app.set('templates', __dirname + '/templates');
 // app.set('view engine', 'ejs');
 // app.use(express.favicon());
 // app.use(express.logger('dev'));
@@ -78,3 +64,6 @@ app.use(function (err, req, res, next) {
 // app.get('/users', user.list);
 
 
+http.createServer(app).listen(config.get('port'), function () {
+  log.info('Express server listening on port ' + config.get('port'));
+})
