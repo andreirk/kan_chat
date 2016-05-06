@@ -1,12 +1,9 @@
-
-/**
- * Module dependencies.
- */
 var express = require('express');
 var http = require('http');
 var path = require('path');
 var config = require('config');
 var log = require('libs/log')(module);
+var HttpError = require('error').HttpError;
 
 var app = express();
 
@@ -19,22 +16,29 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.cookieParser('your secret here'));
+
+app.use(require('./middleware/sendHttpError'));
 // app.use(express.session());
 app.use(app.router);
+require('routes')(app);
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', function (req, res, next){
-  res.render('index', {
-
-  });
-});
 
 app.use(function (err, req, res, next) {
-  if (app.get('env') == 'development'){
+  if (typeof err == 'number'){
+    err = new HttpError(err);
+  }
+
+  if (err instanceof HttpError) {
+    res.sendHttpError(err);
+  } else
+   if (app.get('env') == 'development'){
     var errorHandler = express.errorHandler();
     errorHandler(err, req, res, next)
   } else {
-    res.send(500);
+     log.error(err);
+     err = new HttpError(500);
+    res.sendHttpError(err);
   }
 });
 
@@ -66,4 +70,4 @@ app.use(function (err, req, res, next) {
 
 http.createServer(app).listen(config.get('port'), function () {
   log.info('Express server listening on port ' + config.get('port'));
-})
+});
