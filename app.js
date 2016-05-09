@@ -19,20 +19,21 @@ app.use(express.logger('dev'));
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 
-var MongoStore = require('connect-mongo')(express);
+var  sessionStore = require('./libs/sessionStore');
 
 app.use(express.session({
     secret: config.get('session:secret'),
     key: config.get("session:key"),
     cookie: config.get('session:cookie'),
-    store: new MongoStore({mongooseConnection: mongoose.connection})
+    store: sessionStore
 }));
 
-app.use(function (req, res, next) {
-    req.session.numberOfVisits = req.session.numberOfVisits + 1 || 1;
-    res.send("Visits: " + req.session.numberOfVisits);
-});
+// app.use(function (req, res, next) {
+//     req.session.numberOfVisits = req.session.numberOfVisits + 1 || 1;
+//     res.send("Visits: " + req.session.numberOfVisits);
+// });
 app.use(require('./middleware/sendHttpError'));
+app.use(require('./middleware/loaduser'));
 
 app.use(app.router);
 require('routes')(app);
@@ -62,12 +63,7 @@ app.use(function (err, req, res, next) {
 // var user = require('./routes/user');
 //
 // // all environments
-// app.set('port', process.env.PORT || 3000);
-// app.set('templates', __dirname + '/templates');
-// app.set('view engine', 'ejs');
-// app.use(express.favicon());
-// app.use(express.logger('dev'));
-// app.use(express.bodyParser());
+
 // app.use(express.methodOverride());
 // app.use(express.cookieParser('your secret here'));
 // app.use(express.session());
@@ -83,6 +79,9 @@ app.use(function (err, req, res, next) {
 // app.get('/users', user.list);
 
 
-http.createServer(app).listen(config.get('port'), function () {
+var server = http.createServer(app);
+server.listen(config.get('port'), function () {
   log.info('Express server listening on port ' + config.get('port'));
 });
+
+require('./socket')(server);
