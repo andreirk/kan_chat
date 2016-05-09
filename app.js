@@ -28,11 +28,12 @@ app.use(express.session({
     store: new MongoStore({mongooseConnection: mongoose.connection})
 }));
 
-app.use(function (req, res, next) {
-    req.session.numberOfVisits = req.session.numberOfVisits + 1 || 1;
-    res.send("Visits: " + req.session.numberOfVisits);
-});
+// app.use(function (req, res, next) {
+//     req.session.numberOfVisits = req.session.numberOfVisits + 1 || 1;
+//     res.send("Visits: " + req.session.numberOfVisits);
+// });
 app.use(require('./middleware/sendHttpError'));
+app.use(require('./middleware/loaduser'));
 
 app.use(app.router);
 require('routes')(app);
