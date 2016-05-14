@@ -2,7 +2,7 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var config = require('./config');
-var log = require('libs/log')(module);
+var log = require('./libs/log')(module);
 var mongoose = require('./libs/mongoose');
 var HttpError = require('./error').HttpError;
 
@@ -36,7 +36,7 @@ app.use(require('./middleware/sendHttpError'));
 app.use(require('./middleware/loaduser'));
 
 app.use(app.router);
-require('routes')(app);
+require('./routes')(app);
 app.use(express.static(path.join(__dirname, 'public')));
 
 
